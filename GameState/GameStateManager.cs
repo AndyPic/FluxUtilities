@@ -198,6 +198,18 @@ namespace Flux.State
             }
         }
 
+        /// <summary>
+        /// Quits the game.
+        /// </summary>
+        public void QuitGame()
+        {
+            Application.Quit();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        }
+
         private void LogInvalidStateName(string name)
         {
             Debug.LogWarning($"Failed to move to state: \"{name}\". Invalid state name.\nValid names: {states.ToStringExt()}");

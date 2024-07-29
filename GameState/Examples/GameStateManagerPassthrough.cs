@@ -13,5 +13,10 @@ namespace Flux.State.Example
         {
             GameStateManager.Instance.TrySetState(stateIndex);
         }
+
+        public void OnClick_QuitGame()
+        {
+            GameStateManager.Instance.QuitGame();
+        }
     }
 }
