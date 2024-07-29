@@ -27,7 +27,6 @@ namespace Flux.State.Example
         {
             Progress = progress;
 
-            // update progress bar
             if (progressBar != null)
             {
                 progressBar.fillAmount = progress;
