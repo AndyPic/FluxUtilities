@@ -1,10 +1,13 @@
 ﻿using UnityEditor;
 
-public class EditorRecompile : EditorWindow
+namespace FluxEditor
 {
-    [MenuItem("Flux/Recompile", false, 1)]
-    public static void SetDefaultScene()
+    public class EditorRecompile : EditorWindow
     {
-        EditorUtility.RequestScriptReload();
+        [MenuItem("Flux/Recompile", false, 1)]
+        public static void SetDefaultScene()
+        {
+            EditorUtility.RequestScriptReload();
+        }
     }
 }
