@@ -12,7 +12,7 @@ namespace FluxEditor
     public class FluxMonoBehaviourEditor : Editor
     {
         private const BindingFlags TargetFlags = BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-        private const string ButtonsLabel = "Flux Buttons";
+        private const string BUTTONS_LABEL = "Flux Buttons";
 
         private readonly Dictionary<MethodInfo, List<object>> parametersCache = new();
         private bool buttonsFoldout = false;
@@ -20,80 +20,166 @@ namespace FluxEditor
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            DrawButtons(ButtonsLabel);
-        }
 
-        private Dictionary<MethodInfo, T> GetMethodAttributes<T>(MethodInfo[] methods) where T : Attribute
-        {
-            Dictionary<MethodInfo, T> test = new();
-
-            for (int i = 0; i < methods.Length; i++)
-            {
-                var btn = (T)Attribute.GetCustomAttribute(methods[i], typeof(T));
-                if (btn != null)
-                    test[methods[i]] = btn;
-            }
-
-            return test;
-        }
-
-        private void DrawButtons(string foldoutLabel)
-        {
             // Get the methods
             var target = (MonoBehaviour)this.target;
             var methods = target.GetType().GetMethods(TargetFlags);
 
-            // Filter for button attribute
-            var methodAttributes = GetMethodAttributes<ButtonAttribute>(methods);
+            // get + draw buttons
+            DrawButtons(methods);
 
-            // Guard if there are no buttons to draw
-            if (methodAttributes.Count == 0)
-                return;
+            DrawBenchmarks(methods);
+        }
 
-            // Draw foldout for buttons
-            buttonsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(buttonsFoldout, foldoutLabel);
-            if (buttonsFoldout)
+        private void DrawBenchmarks(MethodInfo[] allMethods)
+        {
+            Dictionary<string, List<(MethodInfo, BenchmarkAttribute)>> benchmarkGroups = new();
+            var type = typeof(BenchmarkAttribute);
+
+            for (int i = 0; i < allMethods.Length; i++)
             {
-                foreach (var (method, buttonAttribute) in methodAttributes)
+                var element = allMethods[i];
+                var attribute = (BenchmarkAttribute)Attribute.GetCustomAttribute(element, type);
+                if (attribute != null)
                 {
-                    // Get the parameter cache
-                    if (!parametersCache.TryGetValue(method, out var parameterCache))
+                    var groupName = attribute.GroupName;
+
+                    if (!benchmarkGroups.TryGetValue(groupName, out var list))
                     {
-                        parameterCache = new();
-                        parametersCache[method] = parameterCache;
+                        list = new();
+                        benchmarkGroups[groupName] = list;
                     }
 
-                    string label = buttonAttribute.label;
+                    list.Add((element, attribute));
+                }
+            }
 
-                    // Default name to the method name, if none given
-                    if (label == string.Empty)
-                        label = method.Name;
+            foreach (var (groupName, benchmarkAttributes) in benchmarkGroups)
+            {
+                if (GUILayout.Button($"Benchmark Group: {groupName}"))
+                {
+                    System.Diagnostics.Stopwatch timer = new();
+                    Dictionary<int, Dictionary<MethodInfo, (float, long)>> times = new();
 
-                    if (GUILayout.Button(label))
+                    foreach (var (method, attribute) in benchmarkAttributes)
                     {
-                        // Get the params
-                        var parametersInfo = method.GetParameters();
+                        var itterations = attribute.Itterations;
 
+                        var parametersInfo = method.GetParameters();
                         object[] parameters = new object[parametersInfo.Length];
 
-                        for (int i = 0; i < parametersInfo.Length; i++)
+                        for (int i = 0; i < itterations.Length; i++)
                         {
-                            Debug.Log(parametersInfo[i].ParameterType);
+                            var count = itterations[i];
 
+                            if (!times.TryGetValue(count, out var methodTime))
+                            {
+                                methodTime = new();
+                                times[count] = methodTime;
+                            }
+
+                            for (int j = 0; j < count; j++)
+                            {
+                                timer.Start();
+                                method.Invoke(target, parameters);
+                                timer.Stop();
+                            }
+
+                            if (!methodTime.ContainsKey(method))
+                            {
+                                methodTime[method] = (timer.ElapsedMilliseconds, timer.ElapsedTicks);
+                            }
+                            else
+                            {
+                                var current = methodTime[method];
+                                methodTime[method] = (current.Item1 + timer.ElapsedMilliseconds, current.Item2 + timer.ElapsedTicks);
+                            }
+
+                            timer.Reset();
+                        }
+                    }
+
+                    System.Text.StringBuilder sb = new();
+
+                    foreach (var (numItterations, methodTimes) in times)
+                    {
+                        sb.Append($" Itterations:{numItterations} = ");
+
+                        long largest = long.MinValue;
+                        foreach (var (method, (ms, ticks)) in methodTimes)
+                        {
+                            if (ticks > largest)
+                                largest = ticks;
                         }
 
-                        if (method.ReturnType == typeof(void))
+                        foreach (var (method, (ms, ticks)) in methodTimes)
                         {
-                            method.Invoke(target, parameters);
+                            float avgTicks = ticks / numItterations;
+                            float avgMs = ms / (float)numItterations;
+                            double percent = ((double)ticks / (double)largest) * 100d;
+
+                            sb.Append($"[{method.Name} : {ticks}t/{ms}ms - Avg.{avgTicks}t/{avgMs}ms ({percent:F2}%)]");
                         }
-                        else
-                        {
-                            Debug.Log(method.Invoke(target, parameters));
-                        }
+                    }
+
+                    Debug.Log(sb.ToString());
+                }
+            }
+        }
+
+        private void DrawButtons(MethodInfo[] allMethods)
+        {
+            List<(MethodInfo, ButtonAttribute)> buttonAttributes = new();
+            var type = typeof(ButtonAttribute);
+
+            for (int i = 0; i < allMethods.Length; i++)
+            {
+                var element = allMethods[i];
+                var attribute = (ButtonAttribute)Attribute.GetCustomAttribute(element, type);
+                if (attribute != null)
+                {
+                    buttonAttributes.Add((allMethods[i], attribute));
+                }
+            }
+
+            foreach (var (method, buttonAttribute) in buttonAttributes)
+            {
+                // Get the parameter cache
+                if (!parametersCache.TryGetValue(method, out var parameterCache))
+                {
+                    parameterCache = new();
+                    parametersCache[method] = parameterCache;
+                }
+
+                string label = buttonAttribute.label;
+
+                // Default name to the method name, if none given
+                if (label == string.Empty)
+                    label = method.Name;
+
+                if (GUILayout.Button(label))
+                {
+                    // Get the params
+                    var parametersInfo = method.GetParameters();
+
+                    object[] parameters = new object[parametersInfo.Length];
+
+                    for (int i = 0; i < parametersInfo.Length; i++)
+                    {
+                        Debug.Log(parametersInfo[i].ParameterType);
+
+                    }
+
+                    if (method.ReturnType == typeof(void))
+                    {
+                        method.Invoke(target, parameters);
+                    }
+                    else
+                    {
+                        Debug.Log(method.Invoke(target, parameters));
                     }
                 }
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawField(Type type, object value, Action<object> valueSetter)
