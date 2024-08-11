@@ -3,7 +3,6 @@
 namespace Flux.Core
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(DontDestroyOnLoad))]
     public abstract class A_MonoSingleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         /// <summary> Singleton instance. </summary>
