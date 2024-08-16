@@ -12,10 +12,8 @@ namespace FluxEditor
     public class FluxMonoBehaviourEditor : Editor
     {
         private const BindingFlags TargetFlags = BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-        private const string BUTTONS_LABEL = "Flux Buttons";
 
         private readonly Dictionary<MethodInfo, List<object>> parametersCache = new();
-        private bool buttonsFoldout = false;
 
         public override void OnInspectorGUI()
         {
@@ -33,26 +31,10 @@ namespace FluxEditor
 
         private void DrawBenchmarks(MethodInfo[] allMethods)
         {
-            Dictionary<string, List<(MethodInfo, BenchmarkAttribute)>> benchmarkGroups = new();
-            var type = typeof(BenchmarkAttribute);
-
-            for (int i = 0; i < allMethods.Length; i++)
-            {
-                var element = allMethods[i];
-                var attribute = (BenchmarkAttribute)Attribute.GetCustomAttribute(element, type);
-                if (attribute != null)
-                {
-                    var groupName = attribute.GroupName;
-
-                    if (!benchmarkGroups.TryGetValue(groupName, out var list))
-                    {
-                        list = new();
-                        benchmarkGroups[groupName] = list;
-                    }
-
-                    list.Add((element, attribute));
-                }
-            }
+            // get the groups
+            var benchmarkGroups = GetGroup<BenchmarkAttribute>();
+            var setupGroups = GetGroup<BenchmarkSetupAttribute>();
+            var cleanupGroups = GetGroup<BenchmarkCleanupAttribute>();
 
             foreach (var (groupName, benchmarkAttributes) in benchmarkGroups)
             {
@@ -61,12 +43,16 @@ namespace FluxEditor
                     System.Diagnostics.Stopwatch timer = new();
                     Dictionary<int, Dictionary<MethodInfo, (float, long)>> times = new();
 
+                    TryRunSetup(groupName, BenchmarkSetupAttribute.E_RunType.OnceAtStart);
+
                     foreach (var (method, attribute) in benchmarkAttributes)
                     {
                         var itterations = attribute.Itterations;
 
                         var parametersInfo = method.GetParameters();
                         object[] parameters = new object[parametersInfo.Length];
+
+                        TryRunSetup(groupName, BenchmarkSetupAttribute.E_RunType.BeforeEachUniqueMethod);
 
                         for (int i = 0; i < itterations.Length; i++)
                         {
@@ -80,9 +66,13 @@ namespace FluxEditor
 
                             for (int j = 0; j < count; j++)
                             {
+                                TryRunSetup(groupName, BenchmarkSetupAttribute.E_RunType.BeforeEachItteration);
+
                                 timer.Start();
                                 method.Invoke(target, parameters);
                                 timer.Stop();
+
+                                TryRunCleanup(groupName, BenchmarkCleanupAttribute.E_RunType.AfterEachItteration);
                             }
 
                             if (!methodTime.ContainsKey(method))
@@ -97,7 +87,11 @@ namespace FluxEditor
 
                             timer.Reset();
                         }
+
+                        TryRunCleanup(groupName, BenchmarkCleanupAttribute.E_RunType.AfterEachUniqueMethod);
                     }
+
+                    TryRunCleanup(groupName, BenchmarkCleanupAttribute.E_RunType.OnceAtEnd);
 
                     System.Text.StringBuilder sb = new();
 
@@ -116,13 +110,73 @@ namespace FluxEditor
                         {
                             float avgTicks = ticks / numItterations;
                             float avgMs = ms / (float)numItterations;
-                            double percent = ((double)ticks / (double)largest) * 100d;
+                            double fraction = (double)ticks / (double)largest;
+                            double percent = fraction * 100d;
 
-                            sb.Append($"[{method.Name} : {ticks}t/{ms}ms - Avg.{avgTicks}t/{avgMs}ms ({percent:F2}%)]");
+                            Color color = Color.Lerp(Color.green, Color.red, (float)fraction);
+                            string hexColor = ColorUtility.ToHtmlStringRGB(color);
+
+                            sb.Append($"[<color=#{hexColor}>{method.Name}</color> : {ticks}t/{ms}ms - Avg.{avgTicks}t/{avgMs}ms ({percent:F2}%)]");
                         }
                     }
 
-                    Debug.Log(sb.ToString());
+                    Debug.Log($"{sb}");
+                }
+            }
+
+            Dictionary<string, List<(MethodInfo, T)>> GetGroup<T>() where T : A_BenchmarkAttribute
+            {
+                Dictionary<string, List<(MethodInfo, T)>> group = new();
+                for (int i = 0; i < allMethods.Length; i++)
+                {
+                    var element = allMethods[i];
+                    var attribute = (T)Attribute.GetCustomAttribute(element, typeof(T));
+                    if (attribute != null)
+                    {
+                        var groupName = attribute.GroupName;
+
+                        if (!group.TryGetValue(groupName, out var list))
+                        {
+                            list = new();
+                            group[groupName] = list;
+                        }
+
+                        list.Add((element, attribute));
+                    }
+                }
+
+                return group;
+            }
+
+            void TryRunSetup(string groupName, BenchmarkSetupAttribute.E_RunType type)
+            {
+                if (setupGroups.TryGetValue(groupName, out var attributes))
+                {
+                    foreach (var (method, attribute) in attributes)
+                    {
+                        if (attribute.RunType == type)
+                        {
+                            var parametersInfo = method.GetParameters();
+                            object[] parameters = new object[parametersInfo.Length];
+                            method.Invoke(target, parameters);
+                        }
+                    }
+                }
+            }
+
+            void TryRunCleanup(string groupName, BenchmarkCleanupAttribute.E_RunType type)
+            {
+                if (cleanupGroups.TryGetValue(groupName, out var attributes))
+                {
+                    foreach (var (method, attribute) in attributes)
+                    {
+                        if (attribute.RunType == type)
+                        {
+                            var parametersInfo = method.GetParameters();
+                            object[] parameters = new object[parametersInfo.Length];
+                            method.Invoke(target, parameters);
+                        }
+                    }
                 }
             }
         }
