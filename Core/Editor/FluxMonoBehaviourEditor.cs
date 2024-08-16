@@ -58,6 +58,11 @@ namespace FluxEditor
                         {
                             var count = itterations[i];
 
+                            if (count <= 0)
+                            {
+                                continue;
+                            }
+
                             if (!times.TryGetValue(count, out var methodTime))
                             {
                                 methodTime = new();
@@ -95,28 +100,34 @@ namespace FluxEditor
 
                     System.Text.StringBuilder sb = new();
 
+                    long largest = 0;
+                    foreach (var (numItterations, methodTimes) in times)
+                    {
+                        foreach (var (method, (ms, ticks)) in methodTimes)
+                        {
+                            float avgTicks = ticks / numItterations;
+                            if (avgTicks > (float)largest)
+                            {
+                                largest = (long)avgTicks;
+                            }
+                        }
+                    }
+
                     foreach (var (numItterations, methodTimes) in times)
                     {
                         sb.Append($" Itterations:{numItterations} = ");
-
-                        long largest = long.MinValue;
-                        foreach (var (method, (ms, ticks)) in methodTimes)
-                        {
-                            if (ticks > largest)
-                                largest = ticks;
-                        }
 
                         foreach (var (method, (ms, ticks)) in methodTimes)
                         {
                             float avgTicks = ticks / numItterations;
                             float avgMs = ms / (float)numItterations;
-                            double fraction = (double)ticks / (double)largest;
+                            double fraction = (double)avgTicks / (double)largest;
                             double percent = fraction * 100d;
 
                             Color color = Color.Lerp(Color.green, Color.red, (float)fraction);
                             string hexColor = ColorUtility.ToHtmlStringRGB(color);
 
-                            sb.Append($"[<color=#{hexColor}>{method.Name}</color> : {ticks}t/{ms}ms - Avg.{avgTicks}t/{avgMs}ms ({percent:F2}%)]");
+                            sb.Append($"[<color=#{hexColor}>{method.Name}</color> : ({percent:F2}%) {ticks}t/{ms}ms - Avg.{avgTicks}t/{avgMs}ms]");
                         }
                     }
 
