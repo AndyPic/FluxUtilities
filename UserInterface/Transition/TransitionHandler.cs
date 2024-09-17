@@ -52,14 +52,19 @@ namespace Flux.UserInterface
             Update(0);
         }
 
+        private void TrySetUp(Panel panel)
+        {
+            if (!hasSetUp)
+                SetUp(panel);
+        }
+
         /// <summary>
         /// Transitions the <paramref name="panel"/> from OFF to ON.
         /// </summary>
         /// <param name="panel">The panel to target.</param>
         public void TransitionToOn(Panel panel)
         {
-            if (!hasSetUp)
-                SetUp(panel);
+            TrySetUp(panel);
 
             for (int i = 0; i < transitions.Length; i++)
             {
@@ -84,8 +89,7 @@ namespace Flux.UserInterface
         /// <param name="panel">The panel to target.</param>
         public void TransitionToOff(Panel panel)
         {
-            if (!hasSetUp)
-                SetUp(panel);
+            TrySetUp(panel);
 
             for (int i = 0; i < transitions.Length; i++)
             {
