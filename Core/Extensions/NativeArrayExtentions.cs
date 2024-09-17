@@ -1,24 +1,27 @@
 ﻿using System.Text;
 using Unity.Collections;
 
-public static class NativeArrayExtentions
+namespace Flux.Core.Extensions
 {
-    public static string ToStringExt<T>(NativeArray<T> array) where T : struct
+    public static class NativeArrayExtentions
     {
-        var sb = new StringBuilder();
-
-        sb.Append("[");
-        for (int i = 0; i < array.Length; i++)
+        public static string ToStringExt<T>(NativeArray<T> array) where T : struct
         {
-            sb.Append(array[i].ToString());
+            var sb = new StringBuilder();
 
-            if (i < array.Length - 1)
+            sb.Append("[");
+            for (int i = 0; i < array.Length; i++)
             {
-                sb.Append(", ");
-            }
-        }
-        sb.Append("]");
+                sb.Append(array[i].ToString());
 
-        return sb.ToString();
+                if (i < array.Length - 1)
+                {
+                    sb.Append(", ");
+                }
+            }
+            sb.Append("]");
+
+            return sb.ToString();
+        }
     }
 }

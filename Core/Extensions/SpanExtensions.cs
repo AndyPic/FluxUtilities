@@ -1,26 +1,29 @@
 ﻿using System;
 
-public static class SpanExtensions
+namespace Flux.Core.Extensions
 {
-    public static bool Contains<T>(this Span<T> span, T target)
+    public static class SpanExtensions
     {
-        for (int i = 0; i < span.Length; i++)
+        public static bool Contains<T>(this Span<T> span, T target)
         {
-            if (span[i].Equals(target))
-                return true;
+            for (int i = 0; i < span.Length; i++)
+            {
+                if (span[i].Equals(target))
+                    return true;
+            }
+            return false;
         }
-        return false;
-    }
 
-    public static string ToStringExt<T>(this Span<T> span)
-    {
-        System.Text.StringBuilder sb = new();
-        sb.Append('[');
-        for (int i = 0; i < span.Length; i++)
+        public static string ToStringExt<T>(this Span<T> span)
         {
-            sb.Append($"{span[i]}");
+            System.Text.StringBuilder sb = new();
+            sb.Append('[');
+            for (int i = 0; i < span.Length; i++)
+            {
+                sb.Append($"{span[i]}");
+            }
+            sb.Append(']');
+            return sb.ToString();
         }
-        sb.Append(']');
-        return sb.ToString();
     }
 }

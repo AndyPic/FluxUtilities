@@ -2,24 +2,27 @@
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
-public class UnsafeListExtentions : MonoBehaviour
+namespace Flux.Core.Extensions
 {
-    public static string ToStringExt<T>(UnsafeList<T> list) where T : unmanaged
+    public class UnsafeListExtentions : MonoBehaviour
     {
-        var sb = new StringBuilder();
-
-        sb.Append("[");
-        for (int i = 0; i < list.Length; i++)
+        public static string ToStringExt<T>(UnsafeList<T> list) where T : unmanaged
         {
-            sb.Append(list[i].ToString());
+            var sb = new StringBuilder();
 
-            if (i < list.Length - 1)
+            sb.Append("[");
+            for (int i = 0; i < list.Length; i++)
             {
-                sb.Append(", ");
-            }
-        }
-        sb.Append("]");
+                sb.Append(list[i].ToString());
 
-        return sb.ToString();
+                if (i < list.Length - 1)
+                {
+                    sb.Append(", ");
+                }
+            }
+            sb.Append("]");
+
+            return sb.ToString();
+        }
     }
 }
