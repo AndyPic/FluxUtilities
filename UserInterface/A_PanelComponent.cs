@@ -2,7 +2,6 @@
 
 namespace Flux.UserInterface
 {
-    [RequireComponent(typeof(Panel))]
     public class A_PanelComponent : MonoBehaviour
     {
         [SerializeField] protected Panel panel;
