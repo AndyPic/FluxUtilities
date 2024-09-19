@@ -5,13 +5,8 @@ namespace Flux.UserInterface
 {
     public class PanelBorder : A_PanelGraphicComponent
     {
-        public float Width;
-        public E_Style Style;
-
-        public enum E_Style
-        {
-            Inside, Outside, Centered
-        }
+        [field: SerializeField] public float Width { get; set; }
+        [field: SerializeField] public E_BorderAlignment Alignment { get; set; }
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
@@ -24,17 +19,17 @@ namespace Flux.UserInterface
             float inner = 0;
             float outer = 0;
 
-            switch (Style)
+            switch (Alignment)
             {
-                case E_Style.Inside:
+                case E_BorderAlignment.Inside:
                     inner = Width;
                     outer = 0;
                     break;
-                case E_Style.Outside:
+                case E_BorderAlignment.Outside:
                     inner = 0;
                     outer = Width;
                     break;
-                case E_Style.Centered:
+                case E_BorderAlignment.Centered:
                     inner = Width * 0.5f;
                     outer = Width * 0.5f;
                     break;
