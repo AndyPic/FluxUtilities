@@ -28,7 +28,7 @@ namespace Flux.UserInterface
         [Min(1)] public int ClickBoxWidth = 10;
         [Tooltip("The size (pixels) of the area at corners where click+drag will allow resizing in both horizontal and vertical axes.")]
         [Min(1)] public int ClickBoxCornerSize = 40;
-        [field: SerializeField] public E_BorderAlignment ClickBoxAlignment { get; set; }
+        [field: SerializeField] public E_BorderAlignment ClickBoxAlignment { get; set; } = E_BorderAlignment.Centered;
         [Tooltip("The color of the clickbox.")]
         public Color ClickBoxColor = Color.clear;
 
