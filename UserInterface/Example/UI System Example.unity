@@ -353,8 +353,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   panel: {fileID: 770821812}
-  <Width>k__BackingField: 0
-  <Alignment>k__BackingField: 0
+  <Width>k__BackingField: 4
+  <Alignment>k__BackingField: 2
 --- !u!222 &432978995
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -509,7 +509,7 @@ MonoBehaviour:
   minHeight: 200
   ClickBoxWidth: 10
   ClickBoxCornerSize: 40
-  <ClickBoxAlignment>k__BackingField: 0
+  <ClickBoxAlignment>k__BackingField: 2
   ClickBoxColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &753011460
 GameObject:
