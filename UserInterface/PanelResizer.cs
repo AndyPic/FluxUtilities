@@ -10,7 +10,7 @@ namespace Flux.UserInterface
     public class PanelResizer : A_PanelComponent
     {
         [Tooltip("Should the panels new size be constrained within its parent?")]
-        [SerializeField] private bool constrainToParentSize = true;
+        //[SerializeField] private bool constrainToParentSize = true;
         [SerializeField] private int minWidth = 200;
         [SerializeField] private int minHeight = 200;
 
