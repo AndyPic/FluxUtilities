@@ -21,7 +21,7 @@ namespace FluxEditor.UserInterface
             GameObject parentObject = menuCommand.context as GameObject;
 
             // Check if the selected object is a valid UI container (has RectTransform)
-            Canvas canvas = null;
+            Canvas canvas;
             if (parentObject != null && parentObject.GetComponentInParent<Canvas>() != null)
             {
                 canvas = parentObject.GetComponentInParent<Canvas>();
@@ -29,7 +29,7 @@ namespace FluxEditor.UserInterface
             else
             {
                 // Fallback: Ensure there's a Canvas in the scene
-                canvas = Object.FindObjectOfType<Canvas>();
+                canvas = GetCanvas();
                 if (canvas == null)
                 {
                     GameObject canvasObject = new("Canvas");
@@ -66,6 +66,15 @@ namespace FluxEditor.UserInterface
 
             // Set the button to be selected in the hierarchy
             Selection.activeGameObject = buttonObject;
+        }
+
+        private static Canvas GetCanvas()
+        {
+#if UNITY_6000_0_OR_NEWER
+            return Object.FindFirstObjectByType<Canvas>();
+#else
+            return Object.FindObjectOfType<Canvas>();
+#endif
         }
     }
 }
