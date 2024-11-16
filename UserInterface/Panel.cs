@@ -6,9 +6,8 @@ namespace Flux.UserInterface
     public partial class Panel : A_UserInterfaceElement
     {
         [field: Header("Panel")]
-        [field: Tooltip("The canvas group of this panel. Note: If left blank will get on awake.")]
+        [field: SerializeField] public Canvas Canvas { get; private set; }
         [field: SerializeField] public CanvasGroup CanvasGroup { get; private set; }
-
         [field: SerializeField] public RectTransform RectTransform { get; private set; }
 
         [field: Tooltip("The collection of transitions this panel will use when enabling / disabling.")]
@@ -16,8 +15,6 @@ namespace Flux.UserInterface
 
         [field: Tooltip("A UNIVERSALLY UNIQUE IDENTIFIER for this panel.")]
         [field: SerializeField] public uint UUID { get; private set; } = uint.MinValue;
-
-        [field: SerializeField] public Canvas Canvas { get; private set; }
 
         private TransitionHandler transitionHandler;
 
@@ -31,6 +28,13 @@ namespace Flux.UserInterface
         {
             float deltaTime = Time.deltaTime;
             transitionHandler.Update(deltaTime);
+        }
+
+        public void SetDefaultReferences()
+        {
+            CanvasGroup = GetComponent<CanvasGroup>();
+            RectTransform = GetComponent<RectTransform>();
+            Canvas = GetComponentInParent<Canvas>();
         }
 
         public void Toggle()
