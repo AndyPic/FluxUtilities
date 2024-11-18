@@ -23,10 +23,70 @@ namespace FluxEditor
             var target = (MonoBehaviour)this.target;
             var methods = target.GetType().GetMethods(TargetFlags);
 
-            // get + draw buttons
             DrawButtons(methods);
-
+            DrawWithConfirmationButtons(methods);
             DrawBenchmarks(methods);
+        }
+
+        private void DrawWithConfirmationButtons(MethodInfo[] allMethods)
+        {
+            List<(MethodInfo, ButtonWithConfirmationAttribute)> buttonAttributes = new();
+            var type = typeof(ButtonWithConfirmationAttribute);
+
+            for (int i = 0; i < allMethods.Length; i++)
+            {
+                var element = allMethods[i];
+                var attribute = (ButtonWithConfirmationAttribute)Attribute.GetCustomAttribute(element, type);
+                if (attribute != null)
+                {
+                    buttonAttributes.Add((allMethods[i], attribute));
+                }
+            }
+
+            foreach (var (method, buttonAttribute) in buttonAttributes)
+            {
+                // Get the parameter cache
+                if (!parametersCache.TryGetValue(method, out var parameterCache))
+                {
+                    parameterCache = new();
+                    parametersCache[method] = parameterCache;
+                }
+
+                string label = buttonAttribute.label;
+                string message = buttonAttribute.message;
+
+                // Default name to the method name, if none given
+                if (label == string.Empty)
+                    label = method.Name;
+
+                if (GUILayout.Button(label))
+                {
+                    // Get the params
+                    var parametersInfo = method.GetParameters();
+
+                    object[] parameters = new object[parametersInfo.Length];
+
+                    for (int i = 0; i < parametersInfo.Length; i++)
+                    {
+                        Debug.Log(parametersInfo[i].ParameterType);
+                    }
+
+                    if (method.ReturnType == typeof(void))
+                    {
+                        if (EditorUtility.DisplayDialog("Confirmation Required", message, "Confirm", "Decline"))
+                        {
+                            method.Invoke(target, parameters);
+                        }
+                    }
+                    else
+                    {
+                        if (EditorUtility.DisplayDialog("Confirmation Required", message, "Confirm", "Decline"))
+                        {
+                            Debug.Log(method.Invoke(target, parameters));
+                        }
+                    }
+                }
+            }
         }
 
         private void DrawBenchmarks(MethodInfo[] allMethods)
@@ -232,7 +292,6 @@ namespace FluxEditor
                     for (int i = 0; i < parametersInfo.Length; i++)
                     {
                         Debug.Log(parametersInfo[i].ParameterType);
-
                     }
 
                     if (method.ReturnType == typeof(void))
