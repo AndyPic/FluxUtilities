@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Flux.Core
+namespace Flux.Core.Collections
 {
     [Serializable]
     public class SerializedDictionary<TKey, TValue> : IEnumerable
@@ -13,8 +13,23 @@ namespace Flux.Core
 
         public int Count { get { return Keys.Count; } }
 
+        public SerializedDictionary()
+        {
+            Keys = new();
+            Values = new();
+        }
+
+        public SerializedDictionary(int capacity)
+        {
+            Keys = new(capacity);
+            Values = new(capacity);
+        }
+
         public SerializedDictionary(params (TKey, TValue)[] inputs)
         {
+            Keys = new(inputs.Length);
+            Values = new(inputs.Length);
+
             foreach ((TKey key, TValue value) in inputs)
             {
                 Add(key, value);

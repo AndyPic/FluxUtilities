@@ -1,4 +1,4 @@
-﻿using Flux.Core;
+﻿using Flux.Core.Collections;
 using UnityEditor;
 using UnityEngine;
 
