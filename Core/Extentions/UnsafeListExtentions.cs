@@ -2,7 +2,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
-namespace Flux.Core.Extensions
+namespace Flux.Core.Extentions
 {
     public class UnsafeListExtentions : MonoBehaviour
     {

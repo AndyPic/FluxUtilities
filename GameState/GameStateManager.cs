@@ -1,5 +1,5 @@
 using Flux.Core;
-using Flux.Core.Extensions;
+using Flux.Core.Extentions;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 

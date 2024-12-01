@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Unity.Collections;
 
-namespace Flux.Core.Extensions
+namespace Flux.Core.Extentions
 {
     public static class NativeArrayExtentions
     {

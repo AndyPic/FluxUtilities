@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Flux.Core.Extensions
+namespace Flux.Core.Extentions
 {
     public static class StringExtentions
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Flux.Core.Extensions
+namespace Flux.Core.Extentions
 {
-    public static class SpanExtensions
+    public static class SpanExtentions
     {
         public static bool Contains<T>(this Span<T> span, T target)
         {

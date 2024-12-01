@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Flux.Core.Extensions
+namespace Flux.Core.Extentions
 {
     public static class EnumExtentions
     {
